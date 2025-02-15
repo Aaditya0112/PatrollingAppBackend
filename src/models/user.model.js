@@ -19,7 +19,9 @@ const userSchema = new Schema({
     },
     password: {
         type: String,
-        required: true
+        required: true,
+        min:8,
+        max:8
     },
     lastLogin: {
         type: Date,
@@ -30,9 +32,9 @@ const userSchema = new Schema({
         enum: ["GENERAL", "ADMIN"],
         required: true
     },
-    token: {
-        type: String,
-    }
+    // token: {
+    //     type: String,
+    // }
 },
 {
     timestamps : true
@@ -51,19 +53,19 @@ userSchema.methods.isCorrectPassword = async function (password) {
     return await bcrypt.compare(password, this.password)
 }
 
-userSchema.methods.generateToken = function () {
-    return jwt.sign(
-        {
-            _id: this._id,
-            name: this.name,
-            role: this.role,
-        },
-        process.env.TOKEN_SECRET,
-        {
-            expiresIn: process.env.TOKEN_EXPIRY
-        }
-    )
-}
+// userSchema.methods.generateToken = function () {
+    // return jwt.sign(
+    //     {
+    //         _id: this._id,
+    //         name: this.name,
+    //         role: this.role,
+    //     },
+    //     process.env.TOKEN_SECRET,
+    //     {
+    //         expiresIn: process.env.TOKEN_EXPIRY
+    //     }
+    // )
+// }
 
 
 export const User = mongoose.model("User", userSchema);
