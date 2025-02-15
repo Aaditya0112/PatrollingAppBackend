@@ -5,16 +5,22 @@ const crimeAreaSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    description : {
-        type : String,
+    description: {
+        type: String,
     },
-    area : [ // array og latitude and longitude
-        {
-            type : string
+    area: {
+        type: {
+            type: String,
+            enum: ["Point", "Polygon"],
+            required: true
+        },
+        coordinates: {
+            type: Array, // [longitude and latitude]
+            required: true
         }
-    ],
-    crimeRate : {
-        type : number
+    },
+    crimeRate: {
+        type: Number
     }
 }, { timestamps: true });
 

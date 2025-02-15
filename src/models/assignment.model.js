@@ -19,18 +19,22 @@ const assignmentSchema = new Schema({
         required : true
     },
     location : {
-        type: {
-            type : String,
-            enum : ["Point", "Polygon"],
-            required : true
-        },
-        coordinates : {
-            type : Array,
-            required : true
-        }
-        // TODO check
+        type: Schema.Types.ObjectId,
+        ref : "CrimeArea" 
     }
-});
+},{
+    virtuals : {
+        isActive :{
+            get() {return new Date() < this.endsAt;}
+        }
+    }
+}
+);
+
+
+// Ensure virtuals are included when converting to JSON or Objects
+assignmentSchema.set("toJSON", { virtuals: true });
+assignmentSchema.set("toObject", { virtuals: true });
 
 assignmentSchema.index({location : "2dsphere"});
 

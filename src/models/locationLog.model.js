@@ -1,4 +1,5 @@
 import mongoose, {Schema} from "mongoose"
+import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2"
 
 const locationLogSchema = new Schema({
     officer : {
@@ -9,11 +10,11 @@ const locationLogSchema = new Schema({
     location : {
         type :{
             type : String,
-            enum : ["Point"],
+            enum : ["Point", "Polygon"],
             required : true
         },
         coordinates : {
-            type : [Number], // [longitude and latitude]
+            type : Array, // [longitude and latitude]
             required : true
         }
         
@@ -23,6 +24,7 @@ const locationLogSchema = new Schema({
     timestamps : true
 }
 )
+locationLogSchema.plugin(mongooseAggregatePaginate)
 
 locationLogSchema.index({ location: '2dsphere' });
 
