@@ -24,7 +24,13 @@ const getUsers = asyncHandler(async (req, res) => {
 const getUserDetails = asyncHandler( async (req, res) => {
     const {userId} = req.params;
     if(!isValidObjectId(userId)) throw new ApiError(400, "invalid user id")
-
+            
+    if(req.user._id.toString() === userId) {
+            return res.code(200)
+            .send(
+                new ApiResponse(200, req.user, "User found")
+            )
+    }
 
     if(req.user.role === "ADMIN") {
         const foundUser  = await User.findById(userId).select("-password")
@@ -34,19 +40,20 @@ const getUserDetails = asyncHandler( async (req, res) => {
                 )
     }
 
-    if(req.user.role === "GENERAL" && req.user._id === userId) {
-        return res.code(200)
-                .send(
-                    new ApiResponse(200, req.user, "User found")
-                )
-    }
-
+    
 
     throw new ApiError(400, "Unauthorized access to user details")
+
+
 
 })
 
 const updateUserDetails = asyncHandler(async (req, res) => {
+    // each user updates it details on  his own and no extra previlage to admin given
+    
+    const {userId} = req.params;
+    if(!isValidObjectId(userId)) throw new ApiError(400, "invalid user id")
+
     const {name, phoneNumber } = req.body;
 
     if(!name && !phoneNumber) throw new ApiError(400, "All fields are required")
@@ -71,6 +78,7 @@ const updateUserDetails = asyncHandler(async (req, res) => {
 })
 
 const changePassword = asyncHandler(async (req, res) => {
+
     const {oldPassword, newPassword, confirmNewPassword} = req.body;
 
     //keep a check on frontend for the fields not to be empty
@@ -107,7 +115,7 @@ const deleteUser = asyncHandler(async (req, res) => {
 
     return res.code(204)
             .send(
-                new ApiResponse(200, {}, "User deleted Successfully")
+                new ApiResponse(204, {}, "User deleted Successfully")
             )
 })
 
