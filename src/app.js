@@ -37,6 +37,8 @@ await server.register(fastifyCookie);
 
 // 🔹 Multipart/Form-data (if needed)
 
+await server.register(fastifyMultipart)
+
 
 server.get('/', (req, res) => {
     res.send(server.printRoutes())
