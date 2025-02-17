@@ -1,4 +1,4 @@
-import { fastify } from "./app.js";
+import { server } from "./app.js";
 import dotenv from "dotenv"
 import connectDB from "./db/db-conn.js";
 
@@ -9,9 +9,9 @@ dotenv.config({
 
 
 connectDB()
-    .then(() => {
-        fastify.listen({port : process.env.PORT || 3000}, () => {
-            console.log(`server is running at ${process.env.PORT} `);  
+    .then(async () => {
+        await server.listen({port : process.env.PORT || 3000 , host : "0.0.0.0"}, () => {
+            console.log(`server is running at http://localhost:${process.env.PORT} `);  
         })
     })
     .catch((err) => {
