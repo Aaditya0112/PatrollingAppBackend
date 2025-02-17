@@ -3,11 +3,13 @@ import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 async function usersRoutes(fastify, options) {
 
-    fastify.get("/users",{ preHandler: verifyJWT }, getUsers);
-    fastify.get("/users/:userId",{ preHandler: verifyJWT }, getUserDetails);
-    fastify.patch("/users/:userId",{ preHandler: verifyJWT }, updateUserDetails);
-    fastify.post("/users/:userId/change-password", { preHandler: verifyJWT }, changePassword)
-    fastify.delete("/users/:userId", { preHandler: verifyJWT }, deleteUser);
+    fastify.addHook('preHandler', verifyJWT)
+
+    fastify.get("/users", getUsers);
+    fastify.get("/users/:userId", getUserDetails);
+    fastify.patch("/users/:userId", updateUserDetails);
+    fastify.post("/users/change-password", changePassword)
+    fastify.delete("/users/:userId", deleteUser);
 }
 
 // Export as a Fastify plugin
