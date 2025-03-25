@@ -56,8 +56,6 @@ const getLogs = asyncHandler(async (req, res) => {
             .send(
                 new ApiResponse(200, searchResult, "List fetched successfully")
             )
-    
-
 })
 
 export {

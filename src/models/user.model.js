@@ -32,9 +32,10 @@ const userSchema = new Schema({
         enum: ["GENERAL", "ADMIN"],
         required: true
     },
-    // token: {
-    //     type: String,
-    // }
+    assignedGroup : { // TODO the name of assignment would be better as name of grou[p]
+        type : String,
+        default : "none"
+    }
 },
 {
     timestamps : true
@@ -52,20 +53,4 @@ userSchema.pre('save', async function (next) {
 userSchema.methods.isCorrectPassword = async function (password) {
     return await bcrypt.compare(password, this.password)
 }
-
-// userSchema.methods.generateToken = function () {
-    // return jwt.sign(
-    //     {
-    //         _id: this._id,
-    //         name: this.name,
-    //         role: this.role,
-    //     },
-    //     process.env.TOKEN_SECRET,
-    //     {
-    //         expiresIn: process.env.TOKEN_EXPIRY
-    //     }
-    // )
-// }
-
-
 export const User = mongoose.model("User", userSchema);

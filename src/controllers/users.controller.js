@@ -79,7 +79,7 @@ const updateUserDetails = asyncHandler(async (req, res) => {
 
 const changePassword = asyncHandler(async (req, res) => {
 
-    const {oldPassword, newPassword, confirmNewPassword} = req.body;
+    const {oldPassword, newPassword} = req.body;
 
     //keep a check on frontend for the fields not to be empty
     const user = await User.findById(req.user?._id)

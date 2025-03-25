@@ -29,6 +29,8 @@ const generateToken = async (userId) => {
 const registerUser = asyncHandler(async (req, res) =>{
     const {name, badgeNumber, phoneNumber, password, role} = req.body;
 
+    // TODO set General to default role, and changes during admin registration
+    // TODO create a numeric_code to identify whether the person registring holds a position to be admin
     if(
         [name, badgeNumber, phoneNumber, password, role].some((field) => field?.trim() === "")
     ){
@@ -83,7 +85,19 @@ const loginUser = asyncHandler(async(req, res) =>{
 
     const token = await generateToken(user._id);
 
-    const loggedInUser = await User.findById(user._id).select("-password")
+    const loggedInUser = await User.findByIdAndUpdate(
+        user._id,
+        {
+            $set : {
+                lastLogin : Date.now()
+            }
+        },
+        {
+            new : true
+        }
+    ).select("-password")
+
+    
 
     const cookieOptions = {
         httpOnly : true,
@@ -93,15 +107,13 @@ const loginUser = asyncHandler(async(req, res) =>{
 
     
     return res.code(200)
-        .header(
-            'Authorization', `Bearer ${token}`
-        )
         .cookie("Token", token, cookieOptions)
         .send(
             new ApiResponse(200, {user : loggedInUser, Token : token}, "Logged in Successfully")
         )
 })
 
+// not needed
 const logoutUser = asyncHandler(async (req, res) => {
     const cookieOptions = {
         httpOnly : true,

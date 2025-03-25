@@ -98,32 +98,7 @@ const getAssignment = asyncHandler(async (req, res) => {
 
     throw new ApiError(400, "Unauthorized access to assignment")
 
-    // if (req.user.role === "ADMIN") {
-    //     const foundAssignment = await Assignment.findById(assignmentIdId)
-    //     return res.code(200)
-    //         .send(
-    //             new ApiResponse(200, foundAssignment, "Assignment found")
-    //         )
-    // }
-
-    // if (req.user.role === "GENERAL") {
-    //     //TODO : doubt aggregate karu ya find karu and unauthorized acces error du
-    //     const userAssignment = await Assignment.aggregate([
-    //         {
-    //             $match :{
-    //                 $and:{
-    //                     _id :  new mongoose.Types.ObjectId(assignmentId),
-    //                     officer : new mongoose.Types.ObjectId(req.user._id),
-
-    //                 }
-    //             }
-    //         }
-    //     ])
-    //     return res.code(200)
-    //         .send(
-    //             new ApiResponse(200, userAssignment, "User found")
-    //         )
-    // }
+    
 
 })
 

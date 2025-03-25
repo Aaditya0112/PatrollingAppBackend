@@ -1,11 +1,13 @@
 import mongoose, {Schema} from "mongoose"
 
 const assignmentSchema = new Schema({
-    officer : {
+
+    // TODO : THERE MUST BE A LIST OF OFFICERS OR GROUP ASSIGNED to a work
+    officer : [{
         type : Schema.Types.ObjectId,
         ref : "User",
         required : true,
-    },
+    }],
     assignedAt : {
         type: Date,
         default : Date.now
@@ -22,6 +24,8 @@ const assignmentSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref : "CrimeArea" 
     }
+
+    // TODO add report model also
 },{
     virtuals : {
         isActive :{

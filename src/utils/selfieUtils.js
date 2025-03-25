@@ -9,7 +9,7 @@ cloudinary.config({
 });
 
 
-const uploadSelfie = async (localFilePath) => {
+const uploadImage = async (localFilePath) => {
     try {
         if(!localFilePath) return null
         //upload on cloudinary
@@ -31,9 +31,9 @@ const extractPublicIdFromURL = (url) =>{
     return url.split("/").pop().split(".")[0]
 }
 
-const deleteSelfie = async(fileURL, fileType = {resource_type :"image"}) => {
+const deleteImage = async(fileURL, fileType = {resource_type :"image"}) => {
     const filePublicId = extractPublicIdFromURL(fileURL)
     await cloudinary.uploader.destroy(filePublicId, fileType)
 }
 
-export {uploadSelfie, deleteSelfie}
+export {uploadImage, deleteImage}
