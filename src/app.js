@@ -3,7 +3,7 @@ import fastify from "fastify";
 import cors from "@fastify/cors";
 import fastifyCookie from "@fastify/cookie";
 import fastifyMultipart from "@fastify/multipart";
-import formbody from "@fastify/formbody"; 
+import formbody from "@fastify/formbody";
 import fastifySocketIO from "fastify-socket.io";
 import rateLimit from "express-rate-limit";
 
@@ -13,7 +13,7 @@ import setupSocket from "./socket/index.js";
 
 
 const app = fastify({
-  logger:true
+  logger: true
 });
 
 
@@ -33,53 +33,57 @@ await app.register(import("@fastify/express"))
 
 
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 500, // Limit each IP to 500 requests per `window` (here, per 15 minutes)
-    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-    keyGenerator: (req, res) => {
-      return req.clientIp; // IP address from requestIp.mw(), as opposed to req.ip
-    },
-    handler: (_, __, ___, options) => {
-      throw new ApiError(
-        options.statusCode || 500,
-        `There are too many requests. You are only allowed ${
-          options.max
-        } requests per ${options.windowMs / 60000} minutes`
-      );
-    },
-  });
-  
-  // Apply the rate limiting middleware to all requests
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 500, // Limit each IP to 500 requests per `window` (here, per 15 minutes)
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  keyGenerator: (req, res) => {
+    return req.clientIp; // IP address from requestIp.mw(), as opposed to req.ip
+  },
+  handler: (_, __, ___, options) => {
+    throw new ApiError(
+      options.statusCode || 500,
+      `There are too many requests. You are only allowed ${options.max
+      } requests per ${options.windowMs / 60000} minutes`
+    );
+  },
+});
+
+// Apply the rate limiting middleware to all requests
 // await app.register(limiter);
 
 // 🔹 CORS Configuration
 await app.register(cors, {
-    origin: process.env.CORS_ORIGIN,
-    credentials: true
+  origin: process.env.CORS_ORIGIN,
+  credentials: true
 });
 
 // 🔹 JSON & URL-Encoded Middleware
 await app.register(formbody); /// For handling `application/x-www-form-urlencoded`
 
 app.addContentTypeParser("application/json", { parseAs: "string" }, (req, body, done) => {
-    try {
-        const json = JSON.parse(body);
-        done(null, json);
-    } catch (err) {
-        done(err, undefined);
-    }
+  try {
+    const json = JSON.parse(body);
+    done(null, json);
+  } catch (err) {
+    done(err, undefined);
+  }
 });
 
-// 🔹 Cookie Parser
-await app.register(fastifyCookie);
+
+await app.register(fastifyCookie, {
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB
+    files: 6
+  }
+});
 
 // 🔹 Multipart/Form-data (if needed)
 await app.register(fastifyMultipart)
 
 
 app.get('/', (req, res) => {
-    res.send(server.printRoutes())
+  res.send(server.printRoutes())
 });
 app.get('/health', (req, res) => {
   res.status(200).send('OK');
@@ -96,12 +100,12 @@ import reportRoutes from "./routes/report.route.js";
 // import setupSocket from "./controllers/socket.controller.js";
 // setupSocket(socketServer)
 
-await app.register(authRoutes, {prefix : '/api/v1/auth'});
-await app.register(usersRoutes, {prefix : '/api/v1'})
-await app.register(assignmentRoutes, {prefix : "/api/v1"})
-await app.register(locationRoutes, {prefix : "/api/v1/gps"})
-await app.register(crimeAreaRoutes, {prefix : "/api/v1"})
-await app.register(selfieRoutes, {prefix : "/api/v1"})
-await app.register(reportRoutes, {prefix : "/api/v1"})
+await app.register(authRoutes, { prefix: '/api/v1/auth' });
+await app.register(usersRoutes, { prefix: '/api/v1' })
+await app.register(assignmentRoutes, { prefix: "/api/v1" })
+await app.register(locationRoutes, { prefix: "/api/v1/gps" })
+await app.register(crimeAreaRoutes, { prefix: "/api/v1" })
+await app.register(selfieRoutes, { prefix: "/api/v1" })
+await app.register(reportRoutes, { prefix: "/api/v1" })
 
-export {app};
+export { app };

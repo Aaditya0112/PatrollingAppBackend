@@ -9,20 +9,22 @@ cloudinary.config({
 });
 
 
-const uploadImage = async (localFilePath) => {
+const uploadImage = async (mimetype, buffer) => {
     try {
-        if(!localFilePath) return null
+        // if(!localFilePath) return null
         //upload on cloudinary
-        const response = await cloudinary.uploader.upload(localFilePath, {
-            resource_type : "auto"
+        const response = await cloudinary.uploader.upload(`data:${mimetype};base64,${buffer}`, {
+            resource_type: 'auto'
         })
         
 
-        fs.unlinkSync(localFilePath)
+        // fs.unlinkSync(localFilePath)
     
         return response
     } catch (error) {
-        fs.unlinkSync(localFilePath) // removal of locally saved file as upload operation got failed
+        // fs.unlinkSync(localFilePath) 
+        console.log('no success');
+        // removal of locally saved file as upload operation got failed
         return null;
     }
 }
