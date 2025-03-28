@@ -5,7 +5,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadImage } from "../utils/selfieUtils.js";
 
 const submitReport = asyncHandler(async (req, res) => {
-    const {location, description} = req.body
+    const {latitude, longitude, description} = req.body
 
     const imagesPath = req.files?.images
 
@@ -24,7 +24,7 @@ const submitReport = asyncHandler(async (req, res) => {
     const createdReport = await Report.create({
         user : req.user._id,
         images : imagesUrl,
-        location,
+        location : {type : 'Point', coordinates : {longitude, latitude}},
         description
     })
 
