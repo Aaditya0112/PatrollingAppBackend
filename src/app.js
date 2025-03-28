@@ -18,9 +18,9 @@ const app = fastify({
 
 
 
-await app.register(fastifySocketIO)
+app.register(fastifySocketIO)
 
-await app.ready().then(() => {
+app.ready().then(() => {
   setupSocket(app);
 }).catch((err) => {
   fastify.log.error(err);
@@ -62,7 +62,7 @@ await app.register(cors, {
 // 🔹 JSON & URL-Encoded Middleware
 await app.register(formbody); /// For handling `application/x-www-form-urlencoded`
 
-await app.addContentTypeParser("application/json", { parseAs: "string" }, (req, body, done) => {
+app.addContentTypeParser("application/json", { parseAs: "string" }, (req, body, done) => {
     try {
         const json = JSON.parse(body);
         done(null, json);

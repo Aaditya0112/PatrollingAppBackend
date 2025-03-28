@@ -24,4 +24,6 @@ const crimeAreaSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
+crimeAreaSchema.index({area : "2dsphere"});
+
 export const CrimeArea = mongoose.model('CrimeArea', crimeAreaSchema);

@@ -7,22 +7,23 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 const createAssignment = asyncHandler(async (req, res) => {
     if (req.user.role !== "ADMIN") throw new ApiError(400, "Unauthorized Access")
 
-    const { officerId, startsAt, endsAt, location } = req.body;
+    const { officerIds, startsAt, endsAt, location } = req.body;
 
     //officerId field will get filled automatically  by selecting officer from list and will be non-editable
     //admin have to fill only startsAt, endsAt and location
 
     if (
-        [officerId, startsAt, endsAt, location].some((field) => field.trim() === "")
+        !Array.isArray(officerIds) || officerIds.length === 0 || 
+        !startsAt || !endsAt || !location
     ) {
         throw new ApiError(400, "All fields are required")
     }
 
     const assignment = await Assignment.create({
-        officer: officerId,
-        startsAt,
-        endsAt,
-        location
+        officer: officerIds,
+        startsAt : new Date(startsAt),
+        endsAt : new Date(endsAt),
+        area : location,
     })
 
     if (!assignment) throw new ApiError(500, "Unable to assign")
@@ -37,9 +38,21 @@ const getAllAssignments = asyncHandler(async (req, res) => {
     const {isActive = true} = req.query;
     
     if (req.user.role === "ADMIN") {
-        const allAssignments = await Assignment.find({
-            isActive
-        }) // array
+        const allAssignments = await Assignment.aggregate([
+            {
+                $match : {
+                    isActive
+                }
+            },
+            {
+                $lookup : {
+                    from : "crimeareas",
+                    localField : "location",
+                    foreignField : "_id",
+                    as : "location"
+                }
+            },
+        ]) // array
 
         //TODO errors aa sakte hai isActive ke regarding as it is virtual field
         // thodi problems ho sakti hai active and inactive ko leke
@@ -56,9 +69,18 @@ const getAllAssignments = asyncHandler(async (req, res) => {
                 $match: {
                     officer: new mongoose.Types.ObjectId(req.user._id),
                 }
-            },{
-                $match : {
-                    isActive
+            },
+            // {
+            //     $match : {
+            //         isActive : true
+            //     }
+            // },
+            {
+                $lookup : {
+                    from : "crimeareas",
+                    localField : "area",
+                    foreignField : "_id",
+                    as : "location"
                 }
             }
         ])

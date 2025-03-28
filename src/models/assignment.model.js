@@ -20,7 +20,7 @@ const assignmentSchema = new Schema({
         type : Date,
         required : true
     },
-    location : {
+    area : {
         type: Schema.Types.ObjectId,
         ref : "CrimeArea" 
     }
@@ -40,6 +40,6 @@ const assignmentSchema = new Schema({
 assignmentSchema.set("toJSON", { virtuals: true });
 assignmentSchema.set("toObject", { virtuals: true });
 
-assignmentSchema.index({location : "2dsphere"});
+
 
 export const Assignment = mongoose.model("Assignment", assignmentSchema)
