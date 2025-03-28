@@ -81,6 +81,9 @@ await app.register(fastifyMultipart)
 app.get('/', (req, res) => {
     res.send(server.printRoutes())
 });
+app.get('/health', (req, res) => {
+  res.status(200).send('OK');
+});
 
 import authRoutes from "./routes/authentication.route.js";
 import usersRoutes from "./routes/users.route.js";
