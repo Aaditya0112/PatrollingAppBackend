@@ -84,7 +84,11 @@ const getAllReport = asyncHandler(async (req, res) => {
                     }
                 ]
             }
-        },
+        },{
+            $addFields : {
+                $first : '$owner'
+            }
+        }
     ])
     return res.code(200)
         .send(
