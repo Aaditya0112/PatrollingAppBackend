@@ -41,19 +41,11 @@ const getAllAssignments = asyncHandler(async (req, res) => {
             {
                 $lookup : {
                     from : "crimeareas",
-                    localField : "location",
-                    foreignField : "_id",
-                    as : "location",
-                }
-            },
-            {
-                $lookup : {
-                    from : "crimeareas",
                     localField : "area",
                     foreignField : "_id",
-                    as : "location"
+                    as : "area",
                 }
-            }
+            },
         ]) // array
 
         //TODO errors aa sakte hai isActive ke regarding as it is virtual field
