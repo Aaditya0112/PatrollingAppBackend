@@ -65,7 +65,7 @@ const submitReport = asyncHandler(async (req, res) => {
 
 const getAllReport = asyncHandler(async (req, res) => {
     if (req.user.role !== "ADMIN") {
-        throw new ApiError(400, "Unauthorized request")
+        throw new ApiError(400, "Unauthorized Access")
     }
     const allReports = await Report.aggregate([
         {
@@ -86,16 +86,19 @@ const getAllReport = asyncHandler(async (req, res) => {
             }
         },{
             $addFields : {
-                $first : '$owner'
+                user : {
+                    $first : "$user"
+                }
             }
         }
     ])
     return res.code(200)
         .send(
-            new ApiResponse(200, allAssignments, "All assignments fetched")
+            new ApiResponse(200, allReports, "All reports fetched")
         )
 })
 
 export {
-    submitReport
+    submitReport,
+    getAllReport
 }

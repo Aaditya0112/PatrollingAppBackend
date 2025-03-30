@@ -45,7 +45,11 @@ const getAllAssignments = asyncHandler(async (req, res) => {
                     foreignField : "_id",
                     as : "area",
                 }
-            },
+            },{
+                $addFields: {
+                    area : {$first : "$area"}
+                }
+            }
         ]) // array
 
         //TODO errors aa sakte hai isActive ke regarding as it is virtual field
