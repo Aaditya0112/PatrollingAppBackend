@@ -75,6 +75,11 @@ const getAllAssignments = asyncHandler(async (req, res) => {
                     foreignField : "_id",
                     as : "area"
                 }
+            },
+            {
+                $addFields: {
+                    area : {$first : "$area"}
+                }
             }
         ])
 
