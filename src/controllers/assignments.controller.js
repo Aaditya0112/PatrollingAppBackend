@@ -69,7 +69,7 @@ const getAllAssignments = asyncHandler(async (req, res) => {
                     from : "crimeareas",
                     localField : "area",
                     foreignField : "_id",
-                    as : "location"
+                    as : "area"
                 }
             }
         ])
