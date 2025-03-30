@@ -76,7 +76,7 @@ const getAllAssignments = asyncHandler(async (req, res) => {
 
         return res.code(200)
             .send(
-                new ApiResponse(200, userAllAssignments, "All assignments fetched")
+                new ApiResponse(200, userAllAssignments, "user-respective assignments fetched")
             )
     }
 
