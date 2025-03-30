@@ -35,21 +35,15 @@ const createAssignment = asyncHandler(async (req, res) => {
 })
 
 const getAllAssignments = asyncHandler(async (req, res) => {
-    const {isActive = true} = req.query;
     
     if (req.user.role === "ADMIN") {
         const allAssignments = await Assignment.aggregate([
-            {
-                $match : {
-                    isActive
-                }
-            },
             {
                 $lookup : {
                     from : "crimeareas",
                     localField : "location",
                     foreignField : "_id",
-                    as : "location"
+                    as : "location",
                 }
             },
         ]) // array
@@ -70,11 +64,6 @@ const getAllAssignments = asyncHandler(async (req, res) => {
                     officer: new mongoose.Types.ObjectId(req.user._id),
                 }
             },
-            // {
-            //     $match : {
-            //         isActive : true
-            //     }
-            // },
             {
                 $lookup : {
                     from : "crimeareas",

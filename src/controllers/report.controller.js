@@ -24,44 +24,73 @@ const submitReport = asyncHandler(async (req, res) => {
             // Handle regular fields
             fields[part.fieldname] = part.value;
         }
-        
-        }
-        
-        if (files.length === 0) {
-            throw new ApiError(400, "please upload at least one image")
-        }
-        const imagesUrl = await Promise.all(
-            files.map(async (image) => {
-                try {
-                    const uploadedImage = await uploadImage(image.mimetype, image.data.toString('base64'));
-                    console.log("Uploaded image URL:", uploadedImage.url);
-                    
-                    if (!uploadedImage || !uploadedImage.url) {
-                        throw new Error("Invalid image upload response");
-                    }
-                    return uploadedImage.url;
-                } catch (error) {
-                    console.error("Error uploading image:", error);
-                    throw new ApiError(500, "Failed to upload one or more images");
-                }
-            })
-        );
-        
-        const createdReport = await Report.create({
-            user: req.user._id,
-            images: imagesUrl,
-            location: { type: 'Point', coordinates: { longitude : fields['longitude'], latitude : fields['latitude'] } },
-            description : fields['description']
-        })
 
-        if (!createdReport) throw new ApiError(500, "error in submitting report")
-
-        return res.code(200)
-            .send(
-                new ApiResponse(200, createdReport, "Report Submitted")
-            )
     }
+
+    if (files.length === 0) {
+        throw new ApiError(400, "please upload at least one image")
+    }
+    const imagesUrl = await Promise.all(
+        files.map(async (image) => {
+            try {
+                const uploadedImage = await uploadImage(image.mimetype, image.data.toString('base64'));
+                console.log("Uploaded image URL:", uploadedImage.url);
+
+                if (!uploadedImage || !uploadedImage.url) {
+                    throw new Error("Invalid image upload response");
+                }
+                return uploadedImage.url;
+            } catch (error) {
+                console.error("Error uploading image:", error);
+                throw new ApiError(500, "Failed to upload one or more images");
+            }
+        })
+    );
+
+    const createdReport = await Report.create({
+        user: req.user._id,
+        images: imagesUrl,
+        location: { type: 'Point', coordinates: { longitude: fields['longitude'], latitude: fields['latitude'] } },
+        description: fields['description']
+    })
+
+    if (!createdReport) throw new ApiError(500, "error in submitting report")
+
+    return res.code(200)
+        .send(
+            new ApiResponse(200, createdReport, "Report Submitted")
+        )
+}
 )
+
+const getAllReport = asyncHandler(async (req, res) => {
+    if (req.user.role !== "ADMIN") {
+        throw new ApiError(400, "Unauthorized request")
+    }
+    const allReports = await Report.aggregate([
+        {
+            $lookup: {
+                from: "users",
+                localField: "user",
+                foreignField: "_id",
+                as: "user",
+                pipeline : [
+                    {
+                        $project : {
+                            name : 1,
+                            badgeNumber : 1,
+                            assignedGroup : 1,
+                        }
+                    }
+                ]
+            }
+        },
+    ])
+    return res.code(200)
+        .send(
+            new ApiResponse(200, allAssignments, "All assignments fetched")
+        )
+})
 
 export {
     submitReport
