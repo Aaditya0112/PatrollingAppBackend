@@ -83,7 +83,7 @@ await app.register(fastifyMultipart)
 
 
 app.get('/', (req, res) => {
-  res.send(server.printRoutes())
+  res.send(app.printRoutes())
 });
 app.get('/health', (req, res) => {
   res.status(200).send('OK');
