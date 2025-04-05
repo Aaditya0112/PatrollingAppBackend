@@ -10,7 +10,7 @@ const addCrimeArea = asyncHandler(async (req, res) => {
     const {name, description, areaType, long, lat, crimeRate} = req.body // TODO test area field
 
     if(
-        [name, description, areaType, long, lat].some((field) => field?.trim() === "")
+        [name, description, areaType, long, lat].some((field) => typeof field == 'string' ? field.trim() === "" : false)
     ) {
         throw new ApiError(400, "All Fields are required")
     }
