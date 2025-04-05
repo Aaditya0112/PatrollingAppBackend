@@ -20,7 +20,7 @@ const crimeAreaSchema = new mongoose.Schema({
         }
     },
     crimeRate: {
-        type: Number
+        type: String
     }
 }, { timestamps: true });
 
