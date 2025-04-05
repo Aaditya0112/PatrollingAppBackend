@@ -7,7 +7,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 const addCrimeArea = asyncHandler(async (req, res) => {
     if(req.user.role !== "ADMIN") throw new ApiError(400, "Unauthorized request")
 
-    const {name, description, long, lat, crimeRate} = req.body // TODO test area field
+    const {name, description, areaType = "Point", long, lat, crimeRate} = req.body // TODO test area field
 
     if(
         [name, description, areaType, long, lat].some((field) => field.trim() === "")
