@@ -119,7 +119,7 @@ const updateStatus  = asyncHandler(async (req, res) => {
 
     return res.code(201)
             .send(
-                new ApiError(201, updatedReport, "report Reviewed")
+                new ApiResponse(201, updatedReport, "report Reviewed")
             )
 })
 
