@@ -25,7 +25,16 @@ const reportSchema = new mongoose.Schema({
     description : {
         type : String,
         required : true
+    },
+    type : {
+        type : String,
+        enum : ["Incident Report", "Daily Report"]
+    },
+    isReviewed : {
+        type : Boolean,
+        default : false,
     }
+
     
 }, { timestamps: true });
 

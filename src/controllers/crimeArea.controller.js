@@ -10,7 +10,7 @@ const addCrimeArea = asyncHandler(async (req, res) => {
     const {name, description, areaType, long, lat, crimeRate} = req.body // TODO test area field
 
     if(
-        [name, description, areaType, long, lat].some((field) => typeof field == 'string' ? field.trim() === "" : false)
+        [name, description, areaType, long, lat].some((field) => field.trim() === "")
     ) {
         throw new ApiError(400, "All Fields are required")
     }
@@ -18,7 +18,7 @@ const addCrimeArea = asyncHandler(async (req, res) => {
     const area = await CrimeArea.create({
         name,
         description,
-        area : {type : areaType, coordinates :[long, lat]},
+        area : {type : areaType, coordinates :{longitude : long, latitude : lat}},
         crimeRate
     })
 

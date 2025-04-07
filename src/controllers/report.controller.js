@@ -98,7 +98,33 @@ const getAllReport = asyncHandler(async (req, res) => {
         )
 })
 
+const updateStatus  = asyncHandler(async (req, res) => {
+    const {reportId} = req.params
+
+    if (req.user.role !== "ADMIN") {
+        throw new ApiError(400, "Unauthorized Access")
+    }
+
+    const updatedReport = await Report.findByIdAndUpdate(
+        reportId,
+        {
+            $set: {
+                isReviewed : true,
+            }
+        },
+        {
+            new: true
+        }
+    )
+
+    return res.code(201)
+            .send(
+                new ApiError(201, updatedReport, "report Reviewed")
+            )
+})
+
 export {
     submitReport,
-    getAllReport
+    getAllReport,
+    updateStatus
 }
