@@ -6,7 +6,7 @@ async function reportRoutes(fastify, options){
 
     fastify.post("/report", submitReport);
     fastify.get("/report", getAllReport);
-    fastify.post("/report/:reportId", updateStatus)
+    fastify.patch("/report/:reportId", updateStatus)
 }
 
 export default reportRoutes;
