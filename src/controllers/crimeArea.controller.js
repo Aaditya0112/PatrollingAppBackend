@@ -24,7 +24,7 @@ const addCrimeArea = asyncHandler(async (req, res) => {
 
     if(!area) throw new ApiError(500, "unable to add area")
 
-    return req.code(201)
+    return res.code(201)
             .send(
                 new ApiResponse(201, area, "Area Added Successfully")
             )
