@@ -9,6 +9,7 @@ import { LocationLog } from "../models/locationLog.model.js";
 async function setupSocket(fastify) {
     fastify.io.on('connection', async (socket) => {
 
+
         try {
             const token = socket.handshake.headers?.authorization;
 
@@ -28,10 +29,14 @@ async function setupSocket(fastify) {
             socket.user = user;
 
 
-            socket.join(user._id.toString());
+            // socket.join(user._id.toString());
             socket.emit(EventEnum.CONNECTED_EVENT)
             console.log("User connected. userId: ", user._id.toString());
 
+            socket.on('registerAdmin', () => {
+                socket.join('admin');
+                console.log("Admin joined the admin room.");
+              });
             socket.on(EventEnum.LOCATION_UPDATE_EVENT, async ({ latitude, longitude }) => {
                 console.log(longitude, latitude)
                 const locationUpdated = await LocationLog.create({
@@ -42,6 +47,13 @@ async function setupSocket(fastify) {
                 if (!createdLocationLog) throw new ApiError(500, "unable to update location on server")
                 // console.log
                 //     ("location updated");
+
+                io.to('admin').emit('userLocation', {
+                    userId: socket.user._id,
+                    name : socket.user.name,
+                    latitude : latitude,
+                    longitude : longitude
+                });
                 socket.emit(EventEnum.LOCATION_LOG_EVENT, "Location Logged.")
             })
 
@@ -62,5 +74,9 @@ async function setupSocket(fastify) {
         }
     });
 }
+
+// async function emitSocketEvent(req, roomId, event, payload) {
+//     req.io.in(roomId).emit(event, payload)
+// }
 
 export default setupSocket;

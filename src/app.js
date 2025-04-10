@@ -16,7 +16,10 @@ const app = fastify({
   logger: true
 });
 
-
+// fastify.decorateRequest('io', null);
+// fastify.addHook('onRequest', async (req, reply) => {
+//   req.io = app.io;
+// });
 
 app.register(fastifySocketIO)
 
