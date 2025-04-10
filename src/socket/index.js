@@ -48,7 +48,7 @@ async function setupSocket(fastify) {
                 // console.log
                 //     ("location updated");
 
-                io.to('admin').emit('userLocation', {
+                socket.to('admin').emit('userLocation', {
                     userId: socket.user._id,
                     name : socket.user.name,
                     latitude : latitude,
