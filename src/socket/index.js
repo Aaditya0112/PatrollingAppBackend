@@ -36,7 +36,7 @@ async function setupSocket(fastify) {
             socket.on('registerAdmin', () => {
                 socket.join('admin');
                 console.log("Admin joined the admin room.");
-              });
+            });
             socket.on(EventEnum.LOCATION_UPDATE_EVENT, async ({ latitude, longitude }) => {
                 console.log(longitude, latitude)
                 const locationUpdated = await LocationLog.create({
@@ -48,6 +48,8 @@ async function setupSocket(fastify) {
                 // console.log
                 //     ("location updated");
 
+                socket.to('admin').emit('userConnected', socket.user._id);
+
                 socket.to('admin').emit('userLocation', {
                     userId: socket.user._id,
                     name : socket.user.name,
@@ -58,6 +60,7 @@ async function setupSocket(fastify) {
             })
 
             socket.on(EventEnum.DISCONNECT_EVENT, () => {
+                socket.to("admin").emit("userDisconnected", socket.user?._id)
                 console.log("user has disconnected. userId: " + socket.user?._id);
                 if (socket.user?._id) {
                     socket.leave(socket.user._id);
