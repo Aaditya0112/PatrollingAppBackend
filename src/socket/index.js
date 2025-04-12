@@ -59,6 +59,10 @@ async function setupSocket(fastify) {
                 socket.emit(EventEnum.LOCATION_LOG_EVENT, "Location Logged.")
             })
 
+            socket.on('emergency-alert', (data) => {
+                socket.to(data["room"]).emit('alert', data)
+            })
+
             socket.on(EventEnum.DISCONNECT_EVENT, () => {
                 socket.to("admin").emit("userDisconnected", socket.user?._id)
                 console.log("user has disconnected. userId: " + socket.user?._id);

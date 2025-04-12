@@ -37,6 +37,11 @@ const registerUser = asyncHandler(async (req, res) =>{
         throw new ApiError(400, "all fields are required")
     }
 
+    // TODO admin and user Validation --> if admin check in admin db for the information and match the badgeId present in it and one person will add the allowed AdminBadegNumber to DB.
+     if(role == "ADMIN") {
+
+     }
+
     const existingUser = await User.findOne({
         $or :[
         {badgeNumber},
