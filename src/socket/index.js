@@ -60,6 +60,7 @@ async function setupSocket(fastify) {
             })
 
             socket.on('emergency-alert', (data) => {
+                console.log("received alert")
                 socket.to(data["room"]).emit('alert', data)
             })
 
