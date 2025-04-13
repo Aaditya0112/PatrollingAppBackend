@@ -51,7 +51,8 @@ const submitReport = asyncHandler(async (req, res) => {
         user: req.user._id,
         images: imagesUrl,
         location: { type: 'Point', coordinates: { longitude: fields['longitude'], latitude: fields['latitude'] } },
-        description: fields['description']
+        description: fields['description'],
+        type : fields["type"],
     })
 
     if (!createdReport) throw new ApiError(500, "error in submitting report")
@@ -64,42 +65,80 @@ const submitReport = asyncHandler(async (req, res) => {
 )
 
 const getAllReport = asyncHandler(async (req, res) => {
-    if (req.user.role !== "ADMIN") {
-        throw new ApiError(400, "Unauthorized Access")
-    }
-    const allReports = await Report.aggregate([
-        {
-            $lookup: {
-                from: "users",
-                localField: "user",
-                foreignField: "_id",
-                as: "user",
-                pipeline : [
-                    {
-                        $project : {
-                            name : 1,
-                            badgeNumber : 1,
-                            assignedGroup : 1,
+    if (req.user.role === "GENERAL") {
+        const allReports = await Report.aggregate([
+            {
+                $match: {
+                    officer: new mongoose.Types.ObjectId(req.user._id),
+                }
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "user",
+                    foreignField: "_id",
+                    as: "user",
+                    pipeline: [
+                        {
+                            $project: {
+                                name: 1,
+                                badgeNumber: 1,
+                                assignedGroup: 1,
+                            }
                         }
+                    ]
+                }
+            }, {
+                $addFields: {
+                    user: {
+                        $first: "$user"
                     }
-                ]
-            }
-        },{
-            $addFields : {
-                user : {
-                    $first : "$user"
                 }
             }
-        }
-    ])
-    return res.code(200)
-        .send(
-            new ApiResponse(200, allReports, "All reports fetched")
-        )
+        ])
+        return res.code(200)
+            .send(
+                new ApiResponse(200, allReports, "All reports fetched")
+            )
+    }
+    if (req.user.role === "ADMIN") {
+        const allReports = await Report.aggregate([
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "user",
+                    foreignField: "_id",
+                    as: "user",
+                    pipeline: [
+                        {
+                            $project: {
+                                name: 1,
+                                badgeNumber: 1,
+                                assignedGroup: 1,
+                            }
+                        }
+                    ]
+                }
+            }, {
+                $addFields: {
+                    user: {
+                        $first: "$user"
+                    }
+                }
+            }
+        ])
+        return res.code(200)
+            .send(
+                new ApiResponse(200, allReports, "All reports fetched")
+            )
+    }
+
+    throw new ApiError(400, "Unauthorized Access")
+
 })
 
-const updateStatus  = asyncHandler(async (req, res) => {
-    const {reportId} = req.params
+const updateStatus = asyncHandler(async (req, res) => {
+    const { reportId } = req.params
 
     if (req.user.role !== "ADMIN") {
         throw new ApiError(400, "Unauthorized Access")
@@ -109,7 +148,7 @@ const updateStatus  = asyncHandler(async (req, res) => {
         reportId,
         {
             $set: {
-                isReviewed : true,
+                isReviewed: true,
             }
         },
         {
@@ -118,9 +157,9 @@ const updateStatus  = asyncHandler(async (req, res) => {
     )
 
     return res.code(201)
-            .send(
-                new ApiResponse(201, updatedReport, "report Reviewed")
-            )
+        .send(
+            new ApiResponse(201, updatedReport, "report Reviewed")
+        )
 })
 
 export {
