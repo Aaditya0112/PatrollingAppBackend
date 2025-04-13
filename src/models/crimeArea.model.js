@@ -15,7 +15,7 @@ const crimeAreaSchema = new mongoose.Schema({
             required: true
         },
         coordinates: {
-            type: Array, // [longitude and latitude]
+            type: [Number], // [longitude and latitude]
             required: true
         }
     },
@@ -24,6 +24,6 @@ const crimeAreaSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-// crimeAreaSchema.index({area : "2dsphere"});
+crimeAreaSchema.index({area : "2dsphere"});
 
 export const CrimeArea = mongoose.model('CrimeArea', crimeAreaSchema);

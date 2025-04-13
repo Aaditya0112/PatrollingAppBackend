@@ -18,7 +18,7 @@ const addCrimeArea = asyncHandler(async (req, res) => {
     const area = await CrimeArea.create({
         name,
         description,
-        area : {type : areaType, coordinates :{longitude : long, latitude : lat}},
+        area : {type : areaType, coordinates :[parseFloat(long), parseFloat(lat)]},
         crimeRate
     })
 
