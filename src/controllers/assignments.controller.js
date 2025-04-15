@@ -23,7 +23,7 @@ const createAssignment = asyncHandler(async (req, res) => {
         officer: officerIds,
         startsAt : new Date(startsAt),
         endsAt : new Date(endsAt),
-        area : location,
+        checkpoints : location,
         duration,
     })
 

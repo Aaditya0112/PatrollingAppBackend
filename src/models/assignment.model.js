@@ -20,7 +20,7 @@ const assignmentSchema = new Schema({
         type: Date,
         required: true
     },
-    area: [{
+    checkpoints: [{
         type: [Number],
         required: true,
     }],
