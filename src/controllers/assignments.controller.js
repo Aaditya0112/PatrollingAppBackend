@@ -7,14 +7,14 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 const createAssignment = asyncHandler(async (req, res) => {
     if (req.user.role !== "ADMIN") throw new ApiError(400, "Unauthorized Access")
 
-    const { officerIds, startsAt, endsAt, location } = req.body;
+    const { officerIds, startsAt, endsAt, location, duration } = req.body;
 
     //officerId field will get filled automatically  by selecting officer from list and will be non-editable
     //admin have to fill only startsAt, endsAt and location
 
     if (
-        !Array.isArray(officerIds) || officerIds.length === 0 || 
-        !startsAt || !endsAt || !location
+        !Array.isArray(officerIds) || !Array.isArray(location) || officerIds.length === 0 || 
+        !startsAt || !endsAt || location.length === 0 || !duration
     ) {
         throw new ApiError(400, "All fields are required")
     }
@@ -24,6 +24,7 @@ const createAssignment = asyncHandler(async (req, res) => {
         startsAt : new Date(startsAt),
         endsAt : new Date(endsAt),
         area : location,
+        duration,
     })
 
     if (!assignment) throw new ApiError(500, "Unable to assign")
@@ -38,18 +39,18 @@ const getAllAssignments = asyncHandler(async (req, res) => {
     
     if (req.user.role === "ADMIN") {
         const allAssignments = await Assignment.aggregate([
-            {
-                $lookup : {
-                    from : "crimeareas",
-                    localField : "area",
-                    foreignField : "_id",
-                    as : "area",
-                }
-            },{
-                $addFields: {
-                    area : {$first : "$area"}
-                }
-            }
+            // {
+            //     $lookup : {
+            //         from : "crimeareas",
+            //         localField : "area",
+            //         foreignField : "_id",
+            //         as : "area",
+            //     }
+            // },{
+            //     $addFields: {
+            //         area : {$first : "$area"}
+            //     }
+            // }
         ]) // array
 
         //TODO errors aa sakte hai isActive ke regarding as it is virtual field
@@ -68,19 +69,19 @@ const getAllAssignments = asyncHandler(async (req, res) => {
                     officer: new mongoose.Types.ObjectId(req.user._id),
                 }
             },
-            {
-                $lookup : {
-                    from : "crimeareas",
-                    localField : "area",
-                    foreignField : "_id",
-                    as : "area"
-                }
-            },
-            {
-                $addFields: {
-                    area : {$first : "$area"}
-                }
-            }
+            // {
+            //     $lookup : {
+            //         from : "crimeareas",
+            //         localField : "area",
+            //         foreignField : "_id",
+            //         as : "area"
+            //     }
+            // },
+            // {
+            //     $addFields: {
+            //         area : {$first : "$area"}
+            //     }
+            // }
         ])
 
         return res.code(200)
