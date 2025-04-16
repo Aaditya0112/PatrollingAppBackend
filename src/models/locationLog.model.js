@@ -8,16 +8,8 @@ const locationLogSchema = new Schema({
         required : true
     },
     location : {
-        type :{
-            type : String,
-            enum : ["Point", "Polygon"],
-            required : true
-        },
-        coordinates : {
-            type : Array, // [longitude and latitude]
-            required : true
-        }
-        
+       type : [Number],
+       required : true,
     }
 },
 {
@@ -26,6 +18,6 @@ const locationLogSchema = new Schema({
 )
 locationLogSchema.plugin(mongooseAggregatePaginate)
 
-locationLogSchema.index({ location: '2dsphere' });
+// locationLogSchema.index({ location: '2dsphere' });
 
 export const LocationLog = mongoose.model("LocationLog", locationLogSchema)
