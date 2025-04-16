@@ -41,7 +41,7 @@ async function setupSocket(fastify) {
                 console.log(longitude, latitude)
                 const locationUpdated = await LocationLog.create({
                     officer: socket.user._id,
-                    location: { type: "Point", coordinates: [longitude, latitude] }
+                    location: [latitude, longitude] 
                 })
                 const createdLocationLog = await LocationLog.findById(locationUpdated._id)
                 if (!createdLocationLog) throw new ApiError(500, "unable to update location on server")
