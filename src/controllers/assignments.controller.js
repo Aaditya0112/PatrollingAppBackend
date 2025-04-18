@@ -9,9 +9,6 @@ const createAssignment = asyncHandler(async (req, res) => {
 
     const { officerIds, startsAt, endsAt, location, duration } = req.body;
 
-    //officerId field will get filled automatically  by selecting officer from list and will be non-editable
-    //admin have to fill only startsAt, endsAt and location
-
     if (
         !Array.isArray(officerIds) || !Array.isArray(location) || officerIds.length === 0 || 
         !startsAt || !endsAt || location.length === 0 || !duration
@@ -19,11 +16,19 @@ const createAssignment = asyncHandler(async (req, res) => {
         throw new ApiError(400, "All fields are required")
     }
 
+    // Convert local time strings to Date objects (interpreted as local time)
+    const localStart = new Date(startsAt);
+    const localEnd = new Date(endsAt);
+    
+    // Convert to UTC by using toISOString() or getTime() methods
+    const utcStart = new Date(localStart.toISOString());
+    const utcEnd = new Date(localEnd.toISOString());
+
     const assignment = await Assignment.create({
         officer: officerIds,
-        startsAt : new Date(startsAt),
-        endsAt : new Date(endsAt),
-        checkpoints : location,
+        startsAt: utcStart,
+        endsAt: utcEnd,
+        checkpoints: location,
         duration,
     })
 
