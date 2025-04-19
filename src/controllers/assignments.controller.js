@@ -45,6 +45,23 @@ const getAllAssignments = asyncHandler(async (req, res) => {
         const allAssignments = await Assignment.aggregate([
             {
                 $lookup : {
+                    from : "users",
+                    localField : "officer",
+                    foreignField : "_id",
+                    as : "officer",
+                    pipeline : [
+                        {
+                            $project : {
+                                name :1,
+                                assignedGroup : 1,
+                                phoneNumber : 1
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                $lookup : {
                     from : "selfies",
                     localField : "_id",
                     foreignField : "assignment",
