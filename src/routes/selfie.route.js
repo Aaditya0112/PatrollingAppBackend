@@ -5,7 +5,7 @@ import { upload } from "../middlewares/multer.middleware.js";
 async function selfieRoutes(fastify, options){
     fastify.addHook('preHandler', verifyJWT)
 
-    fastify.post("/selfies", {preHandler:  upload.single('selfie')}, sendSelfie);
+    fastify.post("/selfies/:assignmentId", sendSelfie);
     fastify.get("/selfies", getSelfies);
     fastify.patch("/selfies/:selfieId/verify", verifySelfie)
 }

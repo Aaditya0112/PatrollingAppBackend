@@ -19,7 +19,6 @@ const createAssignment = asyncHandler(async (req, res) => {
     // Convert local time strings to Date objects (interpreted as local time)
     const localStart = new Date(startsAt);
     const localEnd = new Date(endsAt);
-    
     // Convert to UTC by using toISOString() or getTime() methods
     const utcStart = new Date(localStart.toISOString());
     const utcEnd = new Date(localEnd.toISOString());
@@ -44,19 +43,25 @@ const getAllAssignments = asyncHandler(async (req, res) => {
     
     if (req.user.role === "ADMIN") {
         const allAssignments = await Assignment.aggregate([
-            // {
-            //     $lookup : {
-            //         from : "crimeareas",
-            //         localField : "area",
-            //         foreignField : "_id",
-            //         as : "area",
-            //     }
-            // },{
-            //     $addFields: {
-            //         area : {$first : "$area"}
-            //     }
-            // }
-        ]) // array
+            {
+                $lookup : {
+                    from : "selfies",
+                    localField : "_id",
+                    foreignField : "assignment",
+                    as: "imageData",
+                    pipeline : [
+                        {
+                            $project : {
+                                _id : 1,
+                                officer : 1,
+                                imageUrl : 1,
+                                verified : 1
+                            }
+                        }
+                    ]
+                }
+            },
+        ])
 
         //TODO errors aa sakte hai isActive ke regarding as it is virtual field
         // thodi problems ho sakti hai active and inactive ko leke
@@ -183,6 +188,9 @@ const deleteAssignment = asyncHandler(async (req, res) => {
         )
 })
 
+const checkImageVerification = asyncHandler(async (req, res) => {
+
+})
 export {
     createAssignment,
     getAllAssignments,

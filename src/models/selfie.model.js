@@ -6,6 +6,11 @@ const selfieSchema = new mongoose.Schema({
         ref : "User",
         required: true
     },
+    assignment: {
+        type : Schema.Types.ObjectId,
+        ref : "Assignment",
+        required : true
+    },
     imageUrl : {
         type : String,
         required : true,

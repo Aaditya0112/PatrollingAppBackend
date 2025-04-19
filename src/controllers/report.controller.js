@@ -50,7 +50,7 @@ const submitReport = asyncHandler(async (req, res) => {
     const createdReport = await Report.create({
         user: req.user._id,
         images: imagesUrl,
-        location: { type: 'Point', coordinates: { longitude: fields['longitude'], latitude: fields['latitude'] } },
+        location: [ fields['latitude'], fields['longitude'] ],
         description: fields['description'],
         type : fields["type"],
     })
