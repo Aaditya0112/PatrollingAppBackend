@@ -35,14 +35,11 @@ const sendSelfie = asyncHandler(async (req, res) => {
     // also the previous image must be deleted
 
     // ONE MODIFICATION  : also the selfie can immediately be deleted after getting verified
-    // const prevSelfie = await Selfie.find({ officer: req.user._id })
-    // if(prevSelfie != null){
-    //     const isDeleteSuccessful = await deleteImage(prevSelfie?.imageUrl)
-    //     if (!isDeleteSuccessful) {
-    //         fs.unlinkSync(selfiePath)
-    //         throw new ApiError(500, "error while sending new selfie")
-    //     }
-    // }
+    const prevSelfie = await Selfie.find({ officer: req.user._id })
+    if(prevSelfie != null){
+        await deleteImage(prevSelfie?.imageUrl),
+        await Selfie.deleteOne({ officer: req.user._id })
+    }
     // console.log(files)
 
 
@@ -108,7 +105,26 @@ const verifySelfie = asyncHandler(async (req, res) => {
 
     const { selfieId } = req.params
 
+    const UpdatedVerificationStatus= await Selfie.findByIdAndUpdate(
+        selfieId,
+        {
+            $set : {
+                verified : true
+            }
+        },
+        {
+            new : true
+        }
+    )
 
+    if(!UpdatedVerificationStatus) {
+        throw new ApiError(400, "Unable to verify")
+    }
+
+    return res.code(201)
+            .send(
+                new ApiResponse(201, UpdatedVerificationStatus, "Verified")
+            )
 })
 
 export {

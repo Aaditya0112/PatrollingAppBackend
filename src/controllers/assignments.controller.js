@@ -68,6 +68,29 @@ const getAllAssignments = asyncHandler(async (req, res) => {
                     as: "imageData",
                     pipeline : [
                         {
+                            $lookup : {
+                                from : "users",
+                                localField : "officer",
+                                foreignField : "_id",
+                                as : "officer",
+                                pipeline : [
+                                    {
+                                        $project : {
+                                            "_id" : 1,
+                                            "name" : 1
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            $addFields : {
+                                officer : {
+                                    $first : "$officer"
+                                }
+                            }
+                        },
+                        {
                             $project : {
                                 _id : 1,
                                 officer : 1,
