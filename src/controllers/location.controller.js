@@ -88,9 +88,6 @@ const getLogs = asyncHandler(async (req, res) => {
                 ]
             }
         },
-        {
-            $sort: { createdAt: -1 }
-        }
     ];
 
     const options = {
@@ -99,12 +96,11 @@ const getLogs = asyncHandler(async (req, res) => {
     };
 
     try {
-        const searchResult = await LocationLog.aggregatePaginate(
-            LocationLog.aggregate(aggregationPipeline),
-            options
-        );
+        const searchResult = await
+            LocationLog.aggregate(aggregationPipeline);
+            
 
-        console.log('Search result count:', searchResult.totalDocs);
+        // console.log('Search result count:', len(searchResult));
 
         return res.status(200).send(
             new ApiResponse(200, searchResult, "Location logs fetched successfully")
