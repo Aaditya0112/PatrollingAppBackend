@@ -15,8 +15,12 @@ const selfieSchema = new mongoose.Schema({
         type : String,
         required : true,
     },
-    imgLocation : {
-        type : [Number],
+    imgLat : {
+        type : String,
+        required : true
+    },
+    imgLon : {
+        type : String,
         required : true
     },
     verified : {
