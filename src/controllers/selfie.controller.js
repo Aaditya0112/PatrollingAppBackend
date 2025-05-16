@@ -28,6 +28,8 @@ const sendSelfie = asyncHandler(async (req, res) => {
                 data: await part.toBuffer(), // or use part.file for stream
                 mimetype: part.mimetype
             });
+        }else{
+            fields[part.fieldname] = part.value
         } 
     }
 
@@ -36,7 +38,7 @@ const sendSelfie = asyncHandler(async (req, res) => {
 
     // ONE MODIFICATION  : also the selfie can immediately be deleted after getting verified
     const prevSelfie = await Selfie.find({ officer: req.user._id })
-    if(prevSelfie != null){
+    if(prevSelfie == []){
         await deleteImage(prevSelfie?.imageUrl),
         await Selfie.deleteOne({ officer: req.user._id })
     }
@@ -55,7 +57,9 @@ const sendSelfie = asyncHandler(async (req, res) => {
         const storedSelfie = await Selfie.create({
             officer: req.user._id,
             assignment: assignmentId,
-            imageUrl: uploadedImage.url
+            imageUrl: uploadedImage.url,
+            imgLat : fields['imgLat'],
+            imgLon : fields['imgLon']
         })
         if(!storedSelfie){
             throw new ApiError(500, "error in uploading image to admin")

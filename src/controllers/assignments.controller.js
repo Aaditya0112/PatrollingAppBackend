@@ -95,7 +95,10 @@ const getAllAssignments = asyncHandler(async (req, res) => {
                                 _id : 1,
                                 officer : 1,
                                 imageUrl : 1,
-                                verified : 1
+                                verified : 1,
+                                imgLat:1,
+                                imgLon: 1,
+                                createdAt:1,
                             }
                         }
                     ]
