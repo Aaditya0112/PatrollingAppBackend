@@ -94,7 +94,8 @@ const loginUser = asyncHandler(async(req, res) =>{
         user._id,
         {
             $set : {
-                lastLogin : Date.now()
+                lastLogin : Date.now(),
+                fcmToken : token
             }
         },
         {
@@ -142,9 +143,29 @@ const getUser = asyncHandler(async (req, res) => {
     )
 })
 
+
+const setFCMToken = asyncHandler(async (req, res) => {
+    const { token } = req.body 
+    const updatedUser = await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set : {
+                fcmToken : token
+            }
+        },
+        {
+            new : true
+        }
+    )
+
+    return res.code(201).send(
+        new ApiResponse(200, updatedUser, "FCM Token updated Successfully")
+    )
+})
 export {
     registerUser,
     loginUser,
     logoutUser,
-    getUser
+    getUser,
+    setFCMToken
 }

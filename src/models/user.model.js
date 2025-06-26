@@ -35,6 +35,9 @@ const userSchema = new Schema({
     assignedGroup : { // TODO the name of assignment would be better as name of grou[p]
         type : String,
         default : "none"
+    },
+    fcmToken : {
+        type : String
     }
 },
 {

@@ -3,6 +3,9 @@ import { Assignment } from "../models/assignment.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { User } from "../models/user.model.js";
+import axios from "axios";
+import { getFCMAccessToken } from "../utils/fcmAuth.js";
 
 const createAssignment = asyncHandler(async (req, res) => {
     if (req.user.role !== "ADMIN") throw new ApiError(400, "Unauthorized Access")
@@ -10,16 +13,15 @@ const createAssignment = asyncHandler(async (req, res) => {
     const { officerIds, startsAt, endsAt, location, duration } = req.body;
 
     if (
-        !Array.isArray(officerIds) || !Array.isArray(location) || officerIds.length === 0 || 
+        !Array.isArray(officerIds) || !Array.isArray(location) || officerIds.length === 0 ||
         !startsAt || !endsAt || location.length === 0 || !duration
     ) {
         throw new ApiError(400, "All fields are required")
     }
 
-    // Convert local time strings to Date objects (interpreted as local time)
+    // Convert local time strings to Date objects and then to UTC
     const localStart = new Date(startsAt);
     const localEnd = new Date(endsAt);
-    // Convert to UTC by using toISOString() or getTime() methods
     const utcStart = new Date(localStart.toISOString());
     const utcEnd = new Date(localEnd.toISOString());
 
@@ -31,74 +33,160 @@ const createAssignment = asyncHandler(async (req, res) => {
         duration,
     })
 
-    if (!assignment) throw new ApiError(500, "Unable to assign")
+    if (!assignment) throw new ApiError(500, "Unable to assign");
 
-    return res.code(200)
-        .send(
-            new ApiResponse(200, assignment, "Assignment done successfully")
-        )
-})
+    // Get officers with FCM tokens
+    const officers = await User.find({ 
+        _id: { $in: officerIds },
+        fcmToken: { $exists: true, $ne: null }
+    });
+
+    // Prepare notification promises
+    const notificationPromises = officers.map(async (officer) => {
+        try {
+            // Format dates for display
+            const startTime = localStart.toLocaleString();
+            const endTime = localEnd.toLocaleString();
+            
+            // Get FCM access token (implementation shown below)
+            const accessToken = await getFCMAccessToken();
+            
+            const response = await axios.post(
+                `https://fcm.googleapis.com/v1/projects/${process.env.FIREBASE_PROJECT_ID}/messages:send`,
+                {
+                    message: {
+                        token: officer.fcmToken,
+                        notification: {
+                            title: 'New Patrol Assignment',
+                            body: `You have a patrol from ${startTime} to ${endTime} at ${location.join(', ')}`
+                        },
+                        data: {
+                            type: 'assignment',
+                            assignmentId: assignment._id.toString(),
+                            startsAt: utcStart.toISOString(),
+                            endsAt: utcEnd.toISOString(),
+                            action: 'FLUTTER_NOTIFICATION_CLICK'
+                        },
+                        android: {
+                            priority: 'high'
+                        },
+                        apns: {
+                            headers: {
+                                'apns-priority': '10'
+                            }
+                        }
+                    }
+                },
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    timeout: 5000 // 5 second timeout
+                }
+            );
+            
+            return {
+                success: true,
+                officerId: officer._id,
+                messageId: response.data.name
+            };
+        } catch (error) {
+            console.error(`Failed to notify officer ${officer._id}:`, error.message);
+            return {
+                success: false,
+                officerId: officer._id,
+                error: error.message
+            };
+        }
+    });
+
+    // Execute all notifications in parallel
+    const notificationResults = await Promise.all(notificationPromises);
+    
+    // Count successful notifications
+    const successfulNotifications = notificationResults.filter(r => r.success).length;
+    
+    // Optionally log failed notifications
+    const failedNotifications = notificationResults.filter(r => !r.success);
+    if (failedNotifications.length > 0) {
+        console.warn('Failed to notify some officers:', failedNotifications);
+    }
+
+    return res.status(200).send(
+        new ApiResponse(200, {
+            assignment,
+            notifications: {
+                total: officers.length,
+                successful: successfulNotifications,
+                failed: failedNotifications.length
+            }
+        }, "Assignment created successfully")
+    );
+});
+
+// Helper function to get FCM access token
 
 const getAllAssignments = asyncHandler(async (req, res) => {
-    
+
     if (req.user.role === "ADMIN") {
         const allAssignments = await Assignment.aggregate([
             {
-                $lookup : {
-                    from : "users",
-                    localField : "officer",
-                    foreignField : "_id",
-                    as : "officer",
-                    pipeline : [
+                $lookup: {
+                    from: "users",
+                    localField: "officer",
+                    foreignField: "_id",
+                    as: "officer",
+                    pipeline: [
                         {
-                            $project : {
-                                name :1,
-                                assignedGroup : 1,
-                                phoneNumber : 1
+                            $project: {
+                                name: 1,
+                                assignedGroup: 1,
+                                phoneNumber: 1
                             }
                         }
                     ]
                 }
             },
             {
-                $lookup : {
-                    from : "selfies",
-                    localField : "_id",
-                    foreignField : "assignment",
+                $lookup: {
+                    from: "selfies",
+                    localField: "_id",
+                    foreignField: "assignment",
                     as: "imageData",
-                    pipeline : [
+                    pipeline: [
                         {
-                            $lookup : {
-                                from : "users",
-                                localField : "officer",
-                                foreignField : "_id",
-                                as : "officer",
-                                pipeline : [
+                            $lookup: {
+                                from: "users",
+                                localField: "officer",
+                                foreignField: "_id",
+                                as: "officer",
+                                pipeline: [
                                     {
-                                        $project : {
-                                            "_id" : 1,
-                                            "name" : 1
+                                        $project: {
+                                            "_id": 1,
+                                            "name": 1
                                         }
                                     }
                                 ]
                             }
                         },
                         {
-                            $addFields : {
-                                officer : {
-                                    $first : "$officer"
+                            $addFields: {
+                                officer: {
+                                    $first: "$officer"
                                 }
                             }
                         },
                         {
-                            $project : {
-                                _id : 1,
-                                officer : 1,
-                                imageUrl : 1,
-                                verified : 1,
-                                imgLat:1,
+                            $project: {
+                                _id: 1,
+                                officer: 1,
+                                imageUrl: 1,
+                                verified: 1,
+                                imgLat: 1,
                                 imgLon: 1,
-                                createdAt:1,
+                                createdAt: 1,
                             }
                         }
                     ]
@@ -147,15 +235,15 @@ const getAllAssignments = asyncHandler(async (req, res) => {
 
 const getAssignment = asyncHandler(async (req, res) => {
     const { assignmentId } = req.params;
-    
+
     if (!isValidObjectId(assignmentId)) throw new ApiError(400, "invalid assignment id")
 
     const foundAssignment = await Assignment.findById(assignmentId)
 
-    if(!foundAssignment) throw new ApiError(404, "Assignment not found")
+    if (!foundAssignment) throw new ApiError(404, "Assignment not found")
 
     if (req.user.role === "ADMIN") {
-        
+
         return res.code(200)
             .send(
                 new ApiResponse(200, foundAssignment, "Assignment found")
@@ -172,7 +260,7 @@ const getAssignment = asyncHandler(async (req, res) => {
 
     throw new ApiError(400, "Unauthorized access to assignment")
 
-    
+
 
 })
 
