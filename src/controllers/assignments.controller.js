@@ -47,10 +47,10 @@ const createAssignment = asyncHandler(async (req, res) => {
             // Format dates for display
             const startTime = localStart.toLocaleString();
             const endTime = localEnd.toLocaleString();
-            
+   
             // Get FCM access token (implementation shown below)
-            const accessToken = await getFCMAccessToken();
-            
+            const accessToken = await getFCMAccessToken();     
+            console.log(officer.fcmToken)
             const response = await axios.post(
                 `https://fcm.googleapis.com/v1/projects/${process.env.FIREBASE_PROJECT_ID}/messages:send`,
                 {
@@ -68,7 +68,8 @@ const createAssignment = asyncHandler(async (req, res) => {
                             action: 'FLUTTER_NOTIFICATION_CLICK'
                         },
                         android: {
-                            priority: 'high'
+                            priority: 'high',
+                            // content_available: true
                         },
                         apns: {
                             headers: {
@@ -92,7 +93,7 @@ const createAssignment = asyncHandler(async (req, res) => {
                 messageId: response.data.name
             };
         } catch (error) {
-            console.error(`Failed to notify officer ${officer._id}:`, error.message);
+            console.error(`Failed to notify officer ${officer._id}:`, error);
             return {
                 success: false,
                 officerId: officer._id,
