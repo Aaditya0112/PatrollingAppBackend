@@ -64,6 +64,8 @@ const createAssignment = asyncHandler(async (req, res) => {
                             type: 'assignment',
                             assignmentId: assignment._id.toString(),
                             startsAt: utcStart.toISOString(),
+                            latitude : `${assignment.checkpoints[0][0]}`,
+                            longitude : `${assignment.checkpoints[0][1]}`,
                             endsAt: utcEnd.toISOString(),
                             action: 'FLUTTER_NOTIFICATION_CLICK'
                         },

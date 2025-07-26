@@ -119,10 +119,33 @@ const deleteUser = asyncHandler(async (req, res) => {
             )
 })
 
+const otpBasedPasswordChange = asyncHandler(async (req, res) => {
+    const {otpStatus, userId, newPassword} = req.body
+    
+    if (!isValidObjectId(userId)) throw new ApiError(400, "invalid user id")
+
+    if(!otpStatus) throw new ApiError(401, "Unauthorized access to Password Change")
+
+
+    //keep a check on frontend for the fields not to be empty
+    const user = await User.findById(userId)
+
+    if(!user) throw new ApiError(404, "User not found")
+
+    user.password = newPassword;
+    await user.save({validateBeforeSave : false})
+
+    return res.code(200)
+            .send(
+                new ApiResponse(200, {}, "Password updated successfully")
+            )
+})
+
 export{
     getUsers,
     getUserDetails,
     updateUserDetails,
     changePassword,
-    deleteUser
+    deleteUser,
+    otpBasedPasswordChange
 }

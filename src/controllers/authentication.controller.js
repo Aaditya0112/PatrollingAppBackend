@@ -3,6 +3,8 @@ import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import jwt from "jsonwebtoken";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { createVerification, createVerificationCheck } from "../Twilio/index.js";
+import { isValidObjectId } from "mongoose";
 
 const generateToken = async (userId) => {
     try {
@@ -26,14 +28,14 @@ const generateToken = async (userId) => {
     }
 }
 
-const registerUser = asyncHandler(async (req, res) =>{
-    const {name, badgeNumber, phoneNumber, password, role} = req.body;
+const registerUser = asyncHandler(async (req, res) => {
+    const { name, badgeNumber, phoneNumber, password, role } = req.body;
 
     // TODO set General to default role, and changes during admin registration
     // TODO create a numeric_code to identify whether the person registring holds a position to be admin
-    if(
+    if (
         [name, badgeNumber, phoneNumber, password, role].some((field) => field?.trim() === "")
-    ){
+    ) {
         throw new ApiError(400, "all fields are required")
     }
 
@@ -43,13 +45,13 @@ const registerUser = asyncHandler(async (req, res) =>{
     //  }
 
     const existingUser = await User.findOne({
-        $or :[
-        {badgeNumber},
-        {phoneNumber}
-    ]
+        $or: [
+            { badgeNumber },
+            { phoneNumber }
+        ]
     })
 
-    if(existingUser) throw new ApiError(400, "User already exists")
+    if (existingUser) throw new ApiError(400, "User already exists")
 
     const user = await User.create({
         name,
@@ -61,7 +63,7 @@ const registerUser = asyncHandler(async (req, res) =>{
 
     const createdUser = await User.findById(user._id).select("-password ")
 
-    if(!createdUser) throw new ApiError(500, "Error while registering the User")
+    if (!createdUser) throw new ApiError(500, "Error while registering the User")
 
     return res.code(202)
         .send(
@@ -69,12 +71,12 @@ const registerUser = asyncHandler(async (req, res) =>{
         )
 })
 
-const loginUser = asyncHandler(async(req, res) =>{
-    const {phoneNumber, password} = req.body;
+const loginUser = asyncHandler(async (req, res) => {
+    const { phoneNumber, password } = req.body;
 
-    if(
+    if (
         [phoneNumber, password].some((field) => field?.trim() === "")
-    ){
+    ) {
         throw new ApiError(400, "All fields are required")
     }
 
@@ -82,49 +84,49 @@ const loginUser = asyncHandler(async(req, res) =>{
         phoneNumber
     })
 
-    if(!user) throw new ApiError(404, "User not found")
-    
+    if (!user) throw new ApiError(404, "User not found")
+
     const isValidPassword = await user.isCorrectPassword(password);
 
-    if(!isValidPassword) throw new ApiError(401, "Password is incorrect")
+    if (!isValidPassword) throw new ApiError(401, "Password is incorrect")
 
     const token = await generateToken(user._id);
 
     const loggedInUser = await User.findByIdAndUpdate(
         user._id,
         {
-            $set : {
-                lastLogin : Date.now(),
-                fcmToken : token
+            $set: {
+                lastLogin: Date.now(),
+                fcmToken: token
             }
         },
         {
-            new : true
+            new: true
         }
     ).select("-password")
 
-    
+
 
     const cookieOptions = {
-        httpOnly : true,
-        secure : true,
-        path : "/"
+        httpOnly: true,
+        secure: true,
+        path: "/"
     }
 
-    
+
     return res.code(200)
         .cookie("Token", token, cookieOptions)
         .send(
-            new ApiResponse(200, {user : loggedInUser, Token : token}, "Logged in Successfully")
+            new ApiResponse(200, { user: loggedInUser, Token: token }, "Logged in Successfully")
         )
 })
 
 // not needed
 const logoutUser = asyncHandler(async (req, res) => {
     const cookieOptions = {
-        httpOnly : true,
-        secure : true,
-        path : "/" 
+        httpOnly: true,
+        secure: true,
+        path: "/"
     }
 
     return res
@@ -145,16 +147,16 @@ const getUser = asyncHandler(async (req, res) => {
 
 
 const setFCMToken = asyncHandler(async (req, res) => {
-    const { token } = req.body 
+    const { token } = req.body
     const updatedUser = await User.findByIdAndUpdate(
         req.user._id,
         {
-            $set : {
-                fcmToken : token
+            $set: {
+                fcmToken: token
             }
         },
         {
-            new : true
+            new: true
         }
     )
 
@@ -162,10 +164,62 @@ const setFCMToken = asyncHandler(async (req, res) => {
         new ApiResponse(200, updatedUser, "FCM Token updated Successfully")
     )
 })
+
+const sendOTP = asyncHandler(async (req, res) => {
+
+    const { countryCode = "+91", badgeNumber } = req.body
+
+    const userFound = await User.find({ badgeNumber: badgeNumber }).select("-password");
+
+    if (!userFound) {
+        throw new ApiError(404, "User not Found")
+    }
+
+    const phoneNumber = userFound[0]?.phoneNumber
+    const verification = await createVerification(countryCode, phoneNumber)
+
+    if (!verification.sid || verification.sid == null) {
+        throw new ApiError(500, "unable to send otp")
+    }
+
+    return res.code(200).send(
+        new ApiResponse(200, { badgeNumber: badgeNumber, phoneNumber: phoneNumber }, `otp sent succesfully`)
+    )
+
+})
+
+const verifyOTP = asyncHandler(async (req, res) => {
+
+    const { otp, badgeNumber } = req.body
+
+    const userFound = await User.find({ badgeNumber: badgeNumber }).select("-password");
+
+    if (!userFound) {
+        throw new ApiError(404, "User not Found")
+    }
+
+    const phoneNumber = userFound[0]?.phoneNumber
+    const verified = await createVerificationCheck("+91", otp, phoneNumber)
+
+    if (verified == "approved") {
+        return res.code(200).send(
+            new ApiResponse(200, {user : userFound, otpStatus : verified}, `otp verified`)
+        )
+
+    }
+
+    throw new ApiError(400, "wrong otp")
+})
+
+
+
+
 export {
     registerUser,
     loginUser,
     logoutUser,
     getUser,
-    setFCMToken
+    setFCMToken,
+    sendOTP,
+    verifyOTP,
 }

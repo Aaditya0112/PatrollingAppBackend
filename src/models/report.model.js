@@ -21,7 +21,7 @@ const reportSchema = new mongoose.Schema({
     },
     type : {
         type : String,
-        enum : ["Incident Report", "Daily Report"]
+        enum : ["Incident Report", "Daily Report", "Task Delay Report"]
     },
     isReviewed : {
         type : Boolean,

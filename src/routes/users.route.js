@@ -1,4 +1,4 @@
-import { getUsers, getUserDetails, updateUserDetails, changePassword, deleteUser } from "../controllers/users.controller.js";
+import { getUsers, getUserDetails, updateUserDetails, changePassword, deleteUser, otpBasedPasswordChange } from "../controllers/users.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 async function usersRoutes(fastify, options) {
