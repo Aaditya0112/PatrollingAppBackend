@@ -1,3 +1,4 @@
+import { Assignment } from "../models/assignment.model.js";
 import { Report } from "../models/report.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -162,8 +163,103 @@ const updateStatus = asyncHandler(async (req, res) => {
         )
 })
 
+const downloadReport = asyncHandler(async (req, res) => {
+
+    if (req.user.role !== "ADMIN") {
+        throw new ApiError(400, "Unauthorized download attempt")
+    }
+
+    const { startTime, endTime } = req.query;
+
+    const localStart = new Date(startTime);
+    const localEnd = new Date(endTime);
+    const utcStart = localStart.toISOString();
+    const utcEnd = localEnd.toISOString();
+
+    const matchCondition = {};
+
+    if (utcStart || utcEnd) {
+        const timeCondition = {};
+        
+        if (utcStart) {
+            const startDate = new Date(utcStart);
+            console.log(startDate.toISOString());
+            
+            if (isNaN(startDate.getTime())) {
+                throw new ApiError(400, "Invalid startTime format");
+            }
+            timeCondition.$gte = new Date(startDate.toISOString());
+            console.log('Start date:', startDate);
+        }
+
+        if (utcEnd) {
+            const endDate = new Date(utcEnd);
+            if (isNaN(endDate.getTime())) {
+                throw new ApiError(400, "Invalid endTime format");
+            }
+            timeCondition.$lt = new Date(endDate.toISOString());
+            console.log('End date:', endDate);
+        }
+
+        matchCondition.createdAt = timeCondition;
+    }
+
+
+    const aggregationPipeline = [
+        {
+            $match: matchCondition
+        },
+        {
+            $lookup: {
+                from: "users",
+                localField: "user",
+                foreignField: "_id",
+                as: "user",
+                pipeline: [
+                    {
+                        $project: {
+                            name: 1,
+                            badgeNumber: 1,
+                            phoneNumber: 1
+                        }
+                    }
+                ]
+            }
+        },{
+                $addFields: {
+                    user: {
+                        $first: "$user"
+                    }
+                }
+            },
+        {
+            $project : {
+                _id : 1,
+                user : 1,
+                type : 1,
+                description : 1,
+                isReviewed : 1,
+                createdAt : 1,
+                updatedAt :1
+            }
+        }
+    ];
+
+    try {
+        const fetchedReportData = await Report.aggregate(aggregationPipeline);
+        // const fetchedAssignmentData = await Assignment.aggregate(aggregationPipeline);
+
+        return res.code(200).
+                send(
+                    new ApiResponse(200, {assignments : "",reports : fetchedReportData}, "report Downloaded Successfully")
+                )
+    } catch (error) {
+        throw new ApiError(500, "Unable to fetch data history")
+    }
+})
 export {
     submitReport,
     getAllReport,
-    updateStatus
+    updateStatus,
+    downloadReport
 }

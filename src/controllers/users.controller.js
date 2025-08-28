@@ -12,6 +12,11 @@ const getUsers = asyncHandler(async (req, res) => {
             $match : {
                 role : "GENERAL"
             }
+        }, {
+            $project:{
+                password : 0,
+                fcmToken : 0
+            }
         }
     ])
     
