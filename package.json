@@ -16,6 +16,7 @@
     "@fastify/express": "^2.3.0",
     "@fastify/formbody": "^7.4.0",
     "@fastify/multipart": "^8.3.1",
+    "@fastify/rate-limit": "^7.6.0",
     "axios": "^1.10.0",
     "bcrypt": "^5.1.1",
     "body-parser": "^2.2.0",

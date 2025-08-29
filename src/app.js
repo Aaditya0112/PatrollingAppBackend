@@ -5,7 +5,7 @@ import fastifyCookie from "@fastify/cookie";
 import fastifyMultipart from "@fastify/multipart";
 import formbody from "@fastify/formbody";
 import fastifySocketIO from "fastify-socket.io";
-import rateLimit from "express-rate-limit";
+import fastifyRateLimit from "@fastify/rate-limit";
 
 import setupSocket from "./socket/index.js";
 
@@ -35,25 +35,18 @@ app.ready().then(() => {
 await app.register(import("@fastify/express"))
 
 
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 500, // Limit each IP to 500 requests per `window` (here, per 15 minutes)
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-  keyGenerator: (req, res) => {
-    return req.clientIp; // IP address from requestIp.mw(), as opposed to req.ip
-  },
-  handler: (_, __, ___, options) => {
-    throw new ApiError(
-      options.statusCode || 500,
-      `There are too many requests. You are only allowed ${options.max
-      } requests per ${options.windowMs / 60000} minutes`
-    );
+// Apply the rate limiting middleware to all requests
+await app.register(fastifyRateLimit, {
+  max: 200, // max requests per window
+  timeWindow: "15 minutes", // window duration
+  errorResponseBuilder: (req, context) => {
+    return {
+      statusCode: 429,
+      error: "Too Many Requests",
+      message: `You are only allowed ${context.max} requests per ${context.after}`,
+    };
   },
 });
-
-// Apply the rate limiting middleware to all requests
-// await app.register(limiter);
 
 // 🔹 CORS Configuration
 await app.register(cors, {
