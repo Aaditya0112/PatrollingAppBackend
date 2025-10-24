@@ -128,6 +128,7 @@ const getAllReport = asyncHandler(async (req, res) => {
                 }
             }
         ])
+        
         return res.code(200)
             .send(
                 new ApiResponse(200, allReports, "All reports fetched")
@@ -257,9 +258,26 @@ const downloadReport = asyncHandler(async (req, res) => {
         throw new ApiError(500, "Unable to fetch data history")
     }
 })
+
+const deleteReports =  asyncHandler(async (req, res) => {
+
+    const {reportIds} = req.body;
+
+    if (req.user.role !== "ADMIN") {
+        throw new ApiError(400, "Unauthorized Access")
+    }
+
+    await Report.deleteMany({_id: {$in: reportIds}})
+
+    return res.code(204)
+        .send(
+            new ApiResponse(200, null, "All reports deleted")
+        )
+})
 export {
     submitReport,
     getAllReport,
     updateStatus,
-    downloadReport
+    downloadReport,
+    deleteReports
 }

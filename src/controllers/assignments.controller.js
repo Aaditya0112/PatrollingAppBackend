@@ -45,9 +45,9 @@ const createAssignment = asyncHandler(async (req, res) => {
     const notificationPromises = officers.map(async (officer) => {
         try {
             // Format dates for display
-            const startTime = localStart.toLocaleString();
-            const endTime = localEnd.toLocaleString();
-   
+            const startTime = localStart.toLocaleString("en-US", { timeZone: "IST" }    );
+            const endTime = localEnd.toLocaleString("en-US", { timeZone: "IST" });
+
             // Get FCM access token (implementation shown below)
             const accessToken = await getFCMAccessToken();     
             console.log(officer.fcmToken)
