@@ -71,7 +71,7 @@ const getAllReport = asyncHandler(async (req, res) => {
         const allReports = await Report.aggregate([
             {
                 $match: {
-                    officer: new mongoose.Types.ObjectId(req.user._id),
+                    user: new mongoose.Types.ObjectId(req.user._id),
                 }
             },
             {
