@@ -29,10 +29,11 @@ const submitReport = asyncHandler(async (req, res) => {
 
     }
 
-    if (files.length === 0) {
-        throw new ApiError(400, "please upload at least one image")
-    }
-    const imagesUrl = await Promise.all(
+    let imagesUrl = [];
+    if (files.length !== 0) {
+    //     throw new ApiError(400, "please upload at least one image")
+    // }
+    imagesUrl = await Promise.all(
         files.map(async (image) => {
             try {
                 const uploadedImage = await uploadImage(image.mimetype, image.data.toString('base64'));
@@ -48,6 +49,7 @@ const submitReport = asyncHandler(async (req, res) => {
             }
         })
     );
+}
 
     const createdReport = await Report.create({
         user: req.user._id,
