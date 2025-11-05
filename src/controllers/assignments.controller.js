@@ -10,7 +10,7 @@ import { getFCMAccessToken } from "../utils/fcmAuth.js";
 const createAssignment = asyncHandler(async (req, res) => {
     if (req.user.role !== "ADMIN") throw new ApiError(400, "Unauthorized Access")
 
-    const { officerIds, startsAt, endsAt, location, duration } = req.body;
+    const { officerIds, name, description, startsAt, endsAt, location, duration, requiresImage } = req.body;
 
     if (
         !Array.isArray(officerIds) || !Array.isArray(location) || officerIds.length === 0 ||
@@ -27,10 +27,13 @@ const createAssignment = asyncHandler(async (req, res) => {
 
     const assignment = await Assignment.create({
         officer: officerIds,
+        name,
+        description: description ?? '',
         startsAt: utcStart,
         endsAt: utcEnd,
         checkpoints: location,
         duration,
+        requiresImage: requiresImage || false,
     })
 
     if (!assignment) throw new ApiError(500, "Unable to assign");
@@ -325,10 +328,49 @@ const deleteAssignment = asyncHandler(async (req, res) => {
 const checkImageVerification = asyncHandler(async (req, res) => {
 
 })
+
+const verifyLocation = asyncHandler(async (req, res) => {
+    const { assignmentId } = req.params;
+    if (!isValidObjectId(assignmentId)) throw new ApiError(400, "invalid assignment id")
+
+    let assignmentFound = await Assignment.findById(assignmentId)
+
+    if (!assignmentFound) throw new ApiError(404, "Assignment not found")
+
+    // Ensure the requesting user is one of the officers for this assignment (unless ADMIN)
+    if (req.user.role !== "ADMIN") {
+        const officers = Array.isArray(assignmentFound.officer) ? assignmentFound.officer : [assignmentFound.officer];
+        const userIdStr = req.user._id.toString();
+        const isAssigned = officers.map(o => o.toString()).includes(userIdStr);
+
+        if (!isAssigned) {
+            throw new ApiError(400, "Unauthorized access to assignment")
+        }
+    }
+
+    assignmentFound = await Assignment.findByIdAndUpdate(
+        assignmentId,
+        {
+            $set : {
+                locationVerified : true,
+            }
+        },
+        {
+                new : true
+        }
+    )
+
+    return res.code(200)
+        .send(
+            new ApiResponse(200, assignmentFound, "Assignment location verified successfully")
+        )
+})
+
 export {
     createAssignment,
     getAllAssignments,
     getAssignment,
     updateAssignment,
-    deleteAssignment
+    deleteAssignment,
+    verifyLocation
 }

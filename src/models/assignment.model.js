@@ -8,6 +8,14 @@ const assignmentSchema = new Schema({
         ref: "User",
         required: true,
     }],
+    name : {
+        type : String,
+        required : true,
+    },
+
+    description : {
+        type : String,
+    },
     assignedAt: {
         type: Date,
         default: Date.now
@@ -27,8 +35,15 @@ const assignmentSchema = new Schema({
     duration: {
         type: Number,
         required: true,
+    },
+    locationVerified : {
+        type : Boolean,
+        default : false,
+    },
+    requiresImage:{
+        type : Boolean,
+        default : false,
     }
-
     // TODO add report model also
 }, 
 );
