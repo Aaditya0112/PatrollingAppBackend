@@ -52,7 +52,7 @@ const createAssignment = asyncHandler(async (req, res) => {
             const endTime = localEnd.toLocaleString("en-US", { timeZone: "IST" });
 
             // Get FCM access token (implementation shown below)
-            const accessToken = await getFCMAccessToken();     
+            const accessToken = await getFCMAccessToken();
             console.log(officer.fcmToken)
             const response = await axios.post(
                 `https://fcm.googleapis.com/v1/projects/${process.env.FIREBASE_PROJECT_ID}/messages:send`,
@@ -198,6 +198,9 @@ const getAllAssignments = asyncHandler(async (req, res) => {
                     ]
                 }
             },
+            {
+                $sort: { createdAt: -1}
+            }
         ])
 
         //TODO errors aa sakte hai isActive ke regarding as it is virtual field

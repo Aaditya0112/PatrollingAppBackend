@@ -98,6 +98,8 @@ const getAllReport = asyncHandler(async (req, res) => {
                         $first: "$user"
                     }
                 }
+            }, {
+                $sort: { createdAt: -1 }
             }
         ])
         return res.code(200)
@@ -129,6 +131,8 @@ const getAllReport = asyncHandler(async (req, res) => {
                         $first: "$user"
                     }
                 }
+            }, {
+                $sort: { createdAt: -1 }
             }
         ])
         
